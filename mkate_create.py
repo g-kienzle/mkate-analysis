@@ -31,6 +31,8 @@ if __name__== "__main__":
     my_nn = Net()
     print(my_nn)
 
+    batch_size = 32
+
     optimizer = optim.SGD(my_nn.parameters(), lr=0.01)
 
     #for epoch in range(50):
@@ -41,21 +43,24 @@ if __name__== "__main__":
         s, e = x[0]
         print(f"\nStart: {s}\nEnd (True): {e}\nEnd (Estimate): {my_nn(s)}")
         running_loss = 0.0
-        for i, (start, end) in enumerate(random.sample(list(zip(X,Y)),2048)):
-            optimizer.zero_grad()
-            output = my_nn(start)
-            criterion = nn.MSELoss()
-            loss = criterion(output, end)
-            loss.backward()
-            optimizer.step()
+        l = list(zip(X,Y))
+        random.shuffle(l)
+        for j in range(len(l)//batch_size):
+            for i, (start, end) in enumerate(l[batch_size*j:batch_size*(j+1)]):
+                optimizer.zero_grad()
+                output = my_nn(start)
+                criterion = nn.MSELoss()
+                loss = criterion(output, end)
+                loss.backward()
+                optimizer.step()
 
-            running_loss += loss.item()
-            if i % 1000 == 999: 
-                print(f'[{epoch+1}, {i+1}] loss: {running_loss/1000}')
-                if running_loss/1000 < 0.005:
-                    good = True
-                running_loss = 0.0
+                running_loss += loss.item()
+
         epoch = epoch+1
+
+        print(f'[{epoch}, {i+1}] loss: {running_loss/len(l)}')
+        if running_loss/len(l) < 0.005:
+            good = True
 
 
     torch.save({
