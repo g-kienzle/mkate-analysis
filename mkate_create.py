@@ -1,3 +1,4 @@
+import mkate_load
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -6,7 +7,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import random
 
-
+#Neural network structure: 13 input bits, 12-node hidden layer, 2 output floats
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -17,31 +18,55 @@ class Net(nn.Module):
         x = self.fc2(x)
         return x
 
-
-if __name__== "__main__":
-    file_name = "mkate_data.xlsx"
+def get_data_by_depth(file_name, depth, side):
+    #Data import
     data = pd.read_excel(file_name, 0, header=[0,1])
-    print(data)
-    print(data.iloc[0:8192,0].values)
-    X = torch.Tensor([[bool(int(x)) for x in y.replace("'","")] for y in data.iloc[0:8192,0].values])
-    Y = torch.Tensor(data.iloc[0:8192,[6,7]].values)
-    print(X)
-    print(Y)
+    
+    #Data parsing
+    inputs = list([[bool(int(x)) for x in y.replace("'","")] for y in data.iloc[0:8192,0].values])
+    outputs = list(data.iloc[0:8192,[6,7]].values)
 
+    count = 0
+    if side == "b":
+        for i in range(8192):
+            if sum(inputs[i-count]) > depth:
+                del inputs[i-count]
+                del outputs[i-count]
+                count = count+1
+    if side == "r":
+        for i in range(8192):
+            if sum(inputs[i-count]) < depth:
+                del inputs[i-count]
+                del outputs[i-count]
+                count = count+1
+
+    return torch.Tensor(inputs), torch.Tensor(outputs)
+
+def main():
+    side = ""
+    while side != "b" and side != "r":
+        side = input("Choose to enter depth from protein 0000000000000 (b) or protein 1111111111111 (r): ")
+    depth = 0
+    while depth < 1 or depth > 13:
+        try:
+            depth = int(input("Enter depth: "))
+        except:
+            pass
+
+    X, Y = get_data_by_depth("mkate_data.xlsx", depth, side)
+
+    #Initialize NN, define batch size and optimizer
     my_nn = Net()
-    print(my_nn)
-
     batch_size = 32
-
     optimizer = optim.SGD(my_nn.parameters(), lr=0.01)
 
-    #for epoch in range(50):
+    #Initialize iterator values
     good = False
     epoch = 0
+    good_loss = 0.005
+
+    #Train until MSE less than 0.005
     while not good:
-        x = random.sample(list(zip(X,Y)),1)
-        s, e = x[0]
-        print(f"\nStart: {s}\nEnd (True): {e}\nEnd (Estimate): {my_nn(s)}")
         running_loss = 0.0
         l = list(zip(X,Y))
         random.shuffle(l)
@@ -58,13 +83,19 @@ if __name__== "__main__":
 
         epoch = epoch+1
 
-        print(f'[{epoch}, {i+1}] loss: {running_loss/len(l)}')
-        if running_loss/len(l) < 0.005:
+        print(f'[Epoch: {epoch}] loss: {running_loss/len(l)}')
+        if running_loss/len(l) < good_loss:
             good = True
 
-
+    #Save to my_nn.tar
     torch.save({
                 'model_state_dict': my_nn.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': loss,
                 }, "my_nn.tar")
+
+    #Display graphs from my_nn.tar
+    mkate_load.graph_from_tar("my_nn.tar")
+
+if __name__== "__main__":
+    main()
