@@ -42,30 +42,16 @@ def get_data_by_depth(file_name, depth, side):
 
     return torch.Tensor(inputs), torch.Tensor(outputs)
 
-def main():
-    side = ""
-    while side != "b" and side != "r":
-        side = input("Choose to enter depth from protein 0000000000000 (b) or protein 1111111111111 (r): ")
-    depth = 0
-    while depth < 1 or depth > 13:
-        try:
-            depth = int(input("Enter depth: "))
-        except:
-            pass
-
-    X, Y = get_data_by_depth("mkate_data.xlsx", depth, side)
-
+def create(lrate, batch_size, good_loss, X, Y):
     #Initialize NN, define batch size and optimizer
     my_nn = Net()
-    batch_size = 32
-    optimizer = optim.SGD(my_nn.parameters(), lr=0.01)
+    optimizer = optim.SGD(my_nn.parameters(), lr=lrate)
 
     #Initialize iterator values
     good = False
     epoch = 0
-    good_loss = 0.005
 
-    #Train until MSE less than 0.005
+    #Train until MSE less than good_loss
     while not good:
         running_loss = 0.0
         l = list(zip(X,Y))
@@ -86,6 +72,29 @@ def main():
         print(f'[Epoch: {epoch}] loss: {running_loss/len(l)}')
         if running_loss/len(l) < good_loss:
             good = True
+    
+    return my_nn, optimizer, loss
+
+def main():
+    side = ""
+    while side != "b" and side != "r":
+        side = input("Choose to enter depth from protein 0000000000000 (b) or protein 1111111111111 (r): ")
+    depth = 0
+    while depth < 1 or depth > 13:
+        try:
+            depth = int(input("Enter depth: "))
+        except:
+            pass
+    good_loss = 0
+    while good_loss <= 0 or good_loss >= 1:
+        try:
+            good_loss = int(input("Enter MSE loss to train until (press 'Enter' for default): "))
+        except:
+            good_loss = 0.0055
+
+    X, Y = get_data_by_depth("mkate_data.xlsx", depth, side)
+
+    my_nn, optimizer, loss = create(0.01, 32, good_loss, X, Y)
 
     #Save to my_nn.tar
     torch.save({
