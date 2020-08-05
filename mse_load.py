@@ -1,0 +1,99 @@
+import mkate_mse
+import pandas as pd
+import torch
+import torch.optim as optim
+import matplotlib.pyplot as plt
+
+def graph_from_tar(tar):
+    #Initialize NN and optimizer
+    my_nn = mkate_mse.Net()
+    optimizer = optim.SGD(my_nn.parameters(), lr=0.01)
+
+    #Import my_nn.tar
+    checkpoint = torch.load(tar)
+    my_nn.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    loss = checkpoint['loss']
+
+    my_nn.eval()
+
+    data = pd.read_excel("mkate_data.xlsx", 0, header=[0,1])
+
+    X = torch.Tensor([[bool(int(x)) for x in y.replace("'","")] for y in data.iloc[0:8192,0].values])
+    Y = torch.Tensor(data.iloc[0:8192,[6,7]].values)
+
+    #Parse graphed data
+    dist, real_r, real_b = [torch.sum(l).item() for l in X], [l.tolist()[0] for l in Y], [l.tolist()[1] for l in Y]
+
+    estim_data = my_nn(X)
+
+    estim_r, estim_b = [l.tolist()[0] for l in estim_data], [l.tolist()[1] for l in estim_data]
+
+    real_t, estim_t = [r+b for r,b in zip(real_r,real_b)], [r+b for r,b in zip(estim_r,estim_b)]
+
+    diff_r, diff_b, diff_t = [r-e for r,e in zip(real_r,estim_r)], [r-e for r,e in zip(real_b,estim_b)], [r-e for r,e in zip(real_t,estim_t)]
+    #Initialize and display plots
+    fig, plots = plt.subplots(3,3)
+
+    real_red = plots[0,0]
+    real_blue = plots[1,0]
+    real_tot = plots[2,0]
+    estim_red = plots[0,1]
+    estim_blue = plots[1,1]
+    estim_tot = plots[2,1]
+    diff_red = plots[0,2]
+    diff_blue = plots[1,2]
+    diff_tot = plots[2,2]
+
+    real_red.scatter(dist, real_r, c="red")
+    real_red.set_title('Distance/Real Red')
+    real_red.set_xlabel('Distance from gene 1')
+    real_red.set_ylabel('Red appearance')
+
+    real_blue.scatter(dist, real_b, c="blue")
+    real_blue.set_title('Distance/Real Blue')
+    real_blue.set_xlabel('Distance from gene 1')
+    real_blue.set_ylabel('Blue appearance')
+
+    real_tot.scatter(dist, real_t, c="gray")
+    real_tot.set_title('Distance/Real Total')
+    real_tot.set_xlabel('Distance from gene 1')
+    real_tot.set_ylabel('Total appearance')
+    
+    estim_red.scatter(dist, estim_r, c="red")
+    estim_red.set_title('Distance/Estimated Red')
+    estim_red.set_xlabel('Distance from gene 1')
+    estim_red.set_ylabel('Red appearance')
+
+    estim_blue.scatter(dist, estim_b, c="blue")
+    estim_blue.set_title('Distance/Estimated Blue')
+    estim_blue.set_xlabel('Distance from gene 1')
+    estim_blue.set_ylabel('Blue appearance')
+    
+    estim_tot.scatter(dist, estim_t, c="gray")
+    estim_tot.set_title('Distance/Estimated Total')
+    estim_tot.set_xlabel('Distance from gene 1')
+    estim_tot.set_ylabel('Total appearance')
+    
+    diff_red.scatter(dist, diff_r, c="red")
+    diff_red.set_title('Distance/Difference in Red')
+    diff_red.set_xlabel('Distance from gene 1')
+    diff_red.set_ylabel('Red appearance')
+
+    diff_blue.scatter(dist, diff_b, c="blue")
+    diff_blue.set_title('Distance/Difference in Blue')
+    diff_blue.set_xlabel('Distance from gene 1')
+    diff_blue.set_ylabel('Blue appearance')
+    
+    diff_tot.scatter(dist, diff_t, c="gray")
+    diff_tot.set_title('Distance/Difference in Total')
+    diff_tot.set_xlabel('Distance from gene 1')
+    diff_tot.set_ylabel('Total appearance')
+
+    plt.show()
+
+def main():
+    graph_from_tar("my_nn.tar")
+
+if __name__ == "__main__":
+    main()

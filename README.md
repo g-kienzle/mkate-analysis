@@ -1,5 +1,5 @@
 # mkate-analysis
 
-This is a PyTorch-based regression model of the protein analysis dataset created by Ranganathan et al. It predicts the expression of a protein in the landscape given its comparison to two "endpoints" of the landscape.
+This is a set of PyTorch-based regression models for the protein analysis dataset created by Ranganathan et al. They predict the expression of a protein in the landscape given its depth from two "endpoints" of the landscape.
 
-Run mkate_create to generate, train, and graph a model based on depth from endpoints, run mkate_load to graph a pretrained model.
+There are two model types with two different uncertainty/loss evaluations. The first and more simple uses Mean Squared Error (MSE) loss, which is a standard in simple neural networks. The other uses Bayesian uncertainty calculation, treating each value as a random normal variable rather than a single number, allowing for a more holistic model and giving a broader picture in regards to how accurate the model is believed to be. The Bayesian model is based off of the "Bayes by Backprop" notebook by Nitarshan Rajkumar found at https://github.com/nitarshan/bayes-by-backprop/blob/master/Weight%20Uncertainty%20in%20Neural%20Networks.ipynb.
