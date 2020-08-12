@@ -192,7 +192,7 @@ def main():
                 }, "my_nn_b.tar")
 
     #Display graphs from my_nn_b.tar
-    bayesian_load.graph_from_tar("my_nn_b.tar")
+    bayesian_load.graph_from_tar("my_nn_b.tar").show()
 
 if __name__== "__main__":
     main()

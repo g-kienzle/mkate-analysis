@@ -90,10 +90,14 @@ def graph_from_tar(tar):
     diff_tot.set_xlabel('Distance from gene 1')
     diff_tot.set_ylabel('Total appearance')
 
-    plt.show()
-
+    plt.tight_layout()
+    Size = fig.get_size_inches()
+    fig.set_size_inches(Size[0]*2, Size[1]*2, forward=True)
+    #plt.show()
+    return plt
+    
 def main():
-    graph_from_tar("my_nn_b.tar")
+    graph_from_tar("my_nn_b.tar").show()
 
 if __name__ == "__main__":
     main()

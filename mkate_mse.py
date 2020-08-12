@@ -34,7 +34,7 @@ def get_data_by_depth(file_name, depth, side):
                 count = count+1
     if side == "r":
         for i in range(8192):
-            if sum(inputs[i-count]) < depth:
+            if sum(inputs[i-count]) < 13-depth:
                 del inputs[i-count]
                 del outputs[i-count]
                 count = count+1
@@ -98,7 +98,7 @@ def main():
                 }, "my_nn_m.tar")
 
     #Display graphs from my_nn_m.tar
-    mse_load.graph_from_tar("my_nn_m.tar")
+    mse_load.graph_from_tar("my_nn_m.tar").show()
 
 if __name__== "__main__":
     main()
