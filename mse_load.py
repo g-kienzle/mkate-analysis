@@ -97,7 +97,7 @@ def graph_from_tar(tar):
     return plt
 
 def main():
-    graph_from_tar("my_nn.tar").show()
+    graph_from_tar("my_nn_m.tar").show()
 
 if __name__ == "__main__":
     main()
