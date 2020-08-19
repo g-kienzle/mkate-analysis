@@ -2,9 +2,11 @@ import mkate_mse
 import pandas as pd
 import torch
 import torch.optim as optim
+import matplotlib
 import matplotlib.pyplot as plt
 
 def graph_from_tar(tar):
+    plt.rcParams.update({'figure.max_open_warning': 0})
     #Initialize NN and optimizer
     my_nn = mkate_mse.Net()
     optimizer = optim.SGD(my_nn.parameters(), lr=0.01)
@@ -45,50 +47,70 @@ def graph_from_tar(tar):
     diff_blue = plots[1,2]
     diff_tot = plots[2,2]
 
-    real_red.scatter(dist, real_r, c="red")
-    real_red.set_title('Distance/Real Red')
-    real_red.set_xlabel('Distance from gene 1')
-    real_red.set_ylabel('Red appearance')
+    images = []
 
-    real_blue.scatter(dist, real_b, c="blue")
-    real_blue.set_title('Distance/Real Blue')
-    real_blue.set_xlabel('Distance from gene 1')
-    real_blue.set_ylabel('Blue appearance')
+    h = real_red.hist2d(dist, real_r, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=real_red)
+    real_red.set_title('Depth/True Red')
+    real_red.set_xlabel('Depth from gene 1')
+    real_red.set_ylabel('Red brightness')
 
-    real_tot.scatter(dist, real_t, c="gray")
-    real_tot.set_title('Distance/Real Total')
-    real_tot.set_xlabel('Distance from gene 1')
-    real_tot.set_ylabel('Total appearance')
-    
-    estim_red.scatter(dist, estim_r, c="red")
-    estim_red.set_title('Distance/Estimated Red')
-    estim_red.set_xlabel('Distance from gene 1')
-    estim_red.set_ylabel('Red appearance')
+    h = real_blue.hist2d(dist, real_b, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=real_blue)
+    real_blue.set_title('Depth/True Blue')
+    real_blue.set_xlabel('Depth from gene 1')
+    real_blue.set_ylabel('Blue brightness')
 
-    estim_blue.scatter(dist, estim_b, c="blue")
-    estim_blue.set_title('Distance/Estimated Blue')
-    estim_blue.set_xlabel('Distance from gene 1')
-    estim_blue.set_ylabel('Blue appearance')
+    h = real_tot.hist2d(dist, real_t, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=real_tot)
+    real_tot.set_title('Depth/True Total')
+    real_tot.set_xlabel('Depth from gene 1')
+    real_tot.set_ylabel('Total brightness')
     
-    estim_tot.scatter(dist, estim_t, c="gray")
-    estim_tot.set_title('Distance/Estimated Total')
-    estim_tot.set_xlabel('Distance from gene 1')
-    estim_tot.set_ylabel('Total appearance')
-    
-    diff_red.scatter(dist, diff_r, c="red")
-    diff_red.set_title('Distance/Difference in Red')
-    diff_red.set_xlabel('Distance from gene 1')
-    diff_red.set_ylabel('Red appearance')
+    h = estim_red.hist2d(dist, estim_r, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=estim_red)
+    estim_red.set_title('Depth/Estimated Red')
+    estim_red.set_xlabel('Depth from gene 1')
+    estim_red.set_ylabel('Red brightness')
 
-    diff_blue.scatter(dist, diff_b, c="blue")
-    diff_blue.set_title('Distance/Difference in Blue')
-    diff_blue.set_xlabel('Distance from gene 1')
-    diff_blue.set_ylabel('Blue appearance')
+    h = estim_blue.hist2d(dist, estim_b, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=estim_blue)
+    estim_blue.set_title('Depth/Estimated Blue')
+    estim_blue.set_xlabel('Depth from gene 1')
+    estim_blue.set_ylabel('Blue brightness')
     
-    diff_tot.scatter(dist, diff_t, c="gray")
-    diff_tot.set_title('Distance/Difference in Total')
-    diff_tot.set_xlabel('Distance from gene 1')
-    diff_tot.set_ylabel('Total appearance')
+    h = estim_tot.hist2d(dist, estim_t, bins=[13,32], cmap='pink')#, norm=matplotlib.colors.LogNorm())
+    images.append(h)
+    fig.colorbar(h[3],ax=estim_tot)
+    estim_tot.set_title('Depth/Estimated Total')
+    estim_tot.set_xlabel('Depth from gene 1')
+    estim_tot.set_ylabel('Total brightness')
+    
+    diff_red.scatter(dist, diff_r)
+    diff_red.set_title('Depth/Difference in Red')
+    diff_red.set_xlabel('Depth from gene 1')
+    diff_red.set_ylabel('Red brightness')
+
+    diff_blue.scatter(dist, diff_b)
+    diff_blue.set_title('Depth/Difference in Blue')
+    diff_blue.set_xlabel('Depth from gene 1')
+    diff_blue.set_ylabel('Blue brightness')
+    
+    diff_tot.scatter(dist, diff_t)
+    diff_tot.set_title('Depth/Difference in Total')
+    diff_tot.set_xlabel('Depth from gene 1')
+    diff_tot.set_ylabel('Total brightness')
+
+    vmin = min(image[3].get_array().min() for image in images)
+    vmax = max(image[3].get_array().max() for image in images)
+    norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+    for im in images:
+        im[3].set_norm(norm)
 
     plt.tight_layout()
     Size = fig.get_size_inches()
