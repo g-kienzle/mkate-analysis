@@ -27,7 +27,7 @@ def main():
                 'optimizer_state_dict': optimizer_b.state_dict(),
                 'loss': loss_b,
                 }, "Tars/Bayesian_"+str(depth)+side+".tar")
-
+            
             #Save graphs from tars
             mse_load.graph_from_tar("Tars/MSE_"+str(depth)+side+".tar").savefig("Data/MSE_"+str(depth)+side)
 
